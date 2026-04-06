@@ -31,7 +31,7 @@ public class AiSnippetAnalyzer {
   ObjectMapper mapper =
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-  @Value("classpath:prompt/code-snippet-analyzer-2.st")
+  @Value("classpath:prompt/snippet-analyzer-prompt.st")
   private Resource promptResource;
 
   public String aiSnippetAnalyzer(SnippetEntity snippetEntity) {
