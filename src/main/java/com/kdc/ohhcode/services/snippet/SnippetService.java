@@ -1,6 +1,7 @@
 package com.kdc.ohhcode.services.snippet;
 
 import com.kdc.ohhcode.constants.AppConstants;
+import com.kdc.ohhcode.dtos.snippet.SnippetFilterDto;
 import com.kdc.ohhcode.dtos.snippet.SnippetProgressTracker;
 import com.kdc.ohhcode.dtos.snippet.SnippetRequestDto;
 import com.kdc.ohhcode.dtos.snippet.SnippetResponseDto;
@@ -13,12 +14,13 @@ import com.kdc.ohhcode.mappers.SnippetMapper;
 import com.kdc.ohhcode.repositories.SnippetRepository;
 import com.kdc.ohhcode.security.config.AppConfig;
 import com.kdc.ohhcode.util.AuthUtil;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -86,29 +88,16 @@ public class SnippetService {
     return snippetMapper.toDto(snippetEntity);
   }
 
-  public List<SnippetResponseDto> getAllCodeSnippets() {
+  public SnippetResponseDto getSnippet(UUID id) {
     UserEntity user = authUtil.getCurrentUser();
-    List<SnippetEntity> snippetEntityList = snippetRepository.findAllByUserId(user.getId());
-    return snippetEntityList.stream().map(snippetMapper::toDto).toList();
-  }
-
-  public SnippetResponseDto getCodeSnippetById(UUID id) {
-    UserEntity user = authUtil.getCurrentUser();
-    Optional<SnippetEntity> snippetEntity = snippetRepository.findByIdAndUserId(id, user.getId());
-    if (snippetEntity.isPresent()) {
-      return snippetMapper.toDto(snippetEntity.get());
-    } else {
-      throw new EntityNotFoundException("Code snippet id " + id + " not found");
-    }
+    SnippetEntity snippet = authUtil.validateSnippetOwnership(id, user.getId());
+    return snippetMapper.toDto(snippet);
   }
 
   @Transactional
   public void deleteCodeSnippet(UUID id) {
     UserEntity user = authUtil.getCurrentUser();
-    SnippetEntity snippet =
-        snippetRepository
-            .findByIdAndUserId(id, user.getId())
-            .orElseThrow(() -> new AccessDeniedException("Not allowed to perform this operation"));
+    SnippetEntity snippet = authUtil.validateSnippetOwnership(id, user.getId());
     snippetRepository.delete(snippet);
   }
 
@@ -117,13 +106,7 @@ public class SnippetService {
     UserEntity user = authUtil.getCurrentUser();
 
     // 1: fetch snippet by snippetId and userId -- throw authentication error if not exist
-    SnippetEntity snippet =
-        snippetRepository
-            .findByIdAndUserId(snippetId, user.getId())
-            .orElseThrow(
-                () ->
-                    new AccessDeniedException(
-                        "User not authorized to generate analysis for snippet."));
+    SnippetEntity snippet = authUtil.validateSnippetOwnership(snippetId, user.getId());
 
     if (snippet.getLastAnalyzedAt() != null
         && snippet.getLastAnalyzedAt().isAfter(Instant.now().minusSeconds(30))) {
@@ -143,10 +126,7 @@ public class SnippetService {
 
   public void deleteAnalysis(UUID id) {
     UserEntity user = authUtil.getCurrentUser();
-    SnippetEntity snippet =
-        snippetRepository
-            .findByIdAndUserId(id, user.getId())
-            .orElseThrow(() -> new AccessDeniedException("Not allowed to perform this operation"));
+    SnippetEntity snippet = authUtil.validateSnippetOwnership(id, user.getId());
 
     if (snippet.getStatus() == SnippetStatus.ANALYZING) {
       throw new IllegalStateException("Analysis is in progress. Cannot delete now.");
@@ -154,5 +134,19 @@ public class SnippetService {
     snippet.setAnalysis(null);
     snippet.setStatus(SnippetStatus.UPLOADED);
     snippetRepository.save(snippet);
+  }
+
+  public Page<SnippetResponseDto> getAllSnippetsSpec(SnippetFilterDto filter, Pageable pageable) {
+    UserEntity user = authUtil.getCurrentUser();
+    Specification<SnippetEntity> spec =
+        Specification.where(SnippetSpecification.hasUser(user.getId()))
+            .and(SnippetSpecification.hasStatus(filter.status()))
+            .and(SnippetSpecification.hasDifficulty(filter.difficulty()))
+            .and(SnippetSpecification.hasTags(filter.tags()))
+            .and(SnippetSpecification.hasCreatedBetween(filter.startDate(), filter.endDate()))
+            .and(SnippetSpecification.hasSearch(filter.search()));
+
+    Page<SnippetEntity> snippetsPage = snippetRepository.findAll(spec, pageable);
+    return snippetsPage.map(snippetMapper::toDto);
   }
 }

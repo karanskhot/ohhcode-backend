@@ -14,29 +14,65 @@ INPUT:
 
 -------------------------------------
 
+
 USER PREFERENCE:
+
 - language: {{language}}
   → If not provided, default = ENGLISH
+
 - difficulty: {{difficulty}}
   → If provided, use it
-  → Else infer from problem (default = MEDIUM)
+  → Else infer (default = MEDIUM)
 
-Language rules:
-- Output MUST be in the selected language
-- Hinglish = natural mix (not pure HINDI / ENGLISH)
-- Tone must feel natural, not translated
+-------------------------------------
 
-LANGUAGE ENFORCEMENT:
+LANGUAGE EXECUTION (UNIVERSAL):
+
+The selected language MUST be applied to ALL textual output fields:
+
+- recall.summary
+- recall.recognitionSignals
+- recall.whenToUse
+- practice.selfCheckQuestions
+- practice.interviewFollowUps
+
+Do NOT treat meta.language as metadata only —
+ALL explanation content MUST follow the selected language.
+
+-------------------------------------
+
+SCRIPT RULE (AUTO-DETECT):
+
+- If the language uses a native script (e.g., Hindi, Marathi, Gujarati):
+  → Use its native script (Devanagari / Gujarati / etc.)
+
+- If the language uses Latin script (e.g., English, Spanish, French):
+  → Use standard Latin script
+
+-------------------------------------
+
+SPECIAL CASE — HINGLISH:
 
 If language = HINGLISH:
-- Output MUST be a mix of Hindi + English in EVERY section
-- At least 40% Hindi words MUST be present
-- Sentences MUST feel conversational (like talking to a friend)
-- Do NOT return fully English output
 
-Examples of tone:
-- "tumne yaha binary search use kiya tha"
-- "yaad rakh yeh partition trick important hai"
+- Mix Hindi (Latin script) + English naturally
+- Hindi MUST be written in Latin script (NOT Devanagari)
+- Maintain conversational tone (like speaking to a friend)
+- Avoid pure English or pure Hindi
+
+Example:
+"tumne yaha stack use kiya tha for bracket matching"
+
+-------------------------------------
+
+LANGUAGE VALIDATION (STRICT):
+
+- Output MUST be strictly in the selected language
+- Do NOT mix multiple languages unless explicitly required (e.g., Hinglish)
+- At least 40% of characters must belong to the target script
+If output violates language:
+→ regenerate internally
+→ DO NOT return incorrect output
 
 -------------------------------------
 
@@ -151,11 +187,11 @@ FIELD RULES:
 - code.extracted:
   → EXACT visible code only
   → No cleanup / formatting changes
-
+----------------------------------------------------------------
 - meta.title:
   → concise and recognizable problem name
   → prefer standard naming (e.g., LeetCode-style)
-
+----------------------------------------------------------------
 - meta.tags:
     STRICT RULES:
     - meta.tags MUST be selected ONLY from this list: {{tags}}
@@ -163,37 +199,66 @@ FIELD RULES:
     - Use exact spelling
     - Select 1-3 best suiting tags
     - If unsure, return empty array []
-
+----------------------------------------------------------------
 - meta.difficulty:
   → EASY | MEDIUM | HARD | AMBITIOUS
-
+----------------------------------------------------------------
 - meta.language:
   → Output language used (ENGLISH / HINDI / MARATHI / HINGLISH / SPANISH)
+  - Output MUST be strictly in the selected language.
+  - Do NOT mix multiple languages unless explicitly required (e.g., Hinglish).
+  - Tone must feel natural and native, not translated.
 
+  SCRIPT RULE:
+  - If the language uses a native script (e.g., Hindi, Marathi, Gujarati):
+    → Use that script (Devanagari / Gujarati script)
+  - If the language uses Latin script (e.g., English, Spanish, French):
+    → Use standard Latin script
+
+  SPECIAL CASE:
+  - If language = HINGLISH:
+    → Mix Hindi in Latin script (about 40-70%) + English
+    → Do NOT use Devanagari
+    → Must feel conversational
+
+  VALIDATION:
+  - If output violates the selected language:
+    → regenerate internally
+    → DO NOT return incorrect output
+
+    Language rules:
+    - Output MUST be in the selected language
+    - Hinglish = natural mix (not pure HINDI / ENGLISH)
+    - Tone must feel natural, not translated
+
+    Examples of tone:
+    - "tumne yaha binary search use kiya tha"
+    - "yaad rakh yeh partition trick important hai"
+----------------------------------------------------------------
 - meta.codeLanguage:
   → Java | Python | C | C++ | JavaScript | Unknown
   → Infer ONLY if clearly identifiable
-
+----------------------------------------------------------------
 - recall.summary:
   → 5–10 short lines
   → recall-focused tone
   → MUST include "Key Trigger"
   → Avoid instructional tone
-
+----------------------------------------------------------------
 - recall.recognitionSignals:
   → 3–5 short phrases MAX
   → scannable in <2 seconds
-
+----------------------------------------------------------------
 - recall.whenToUse:
   → 2–4 concise bullets
   → focus on pattern recognition
-
+----------------------------------------------------------------
 - practice.relatedProblems:
   → similar problems
-
+----------------------------------------------------------------
 - practice.selfCheckQuestions:
   → quick recall questions
-
+----------------------------------------------------------------
 - practice.interviewFollowUps:
   → realistic follow-ups
 

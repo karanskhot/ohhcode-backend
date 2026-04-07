@@ -1,8 +1,10 @@
 package com.kdc.ohhcode.util;
 
 import com.kdc.ohhcode.dtos.auth.TokenResponseDto;
+import com.kdc.ohhcode.entities.SnippetEntity;
 import com.kdc.ohhcode.entities.UserEntity;
 import com.kdc.ohhcode.entities.enums.Role;
+import com.kdc.ohhcode.repositories.SnippetRepository;
 import com.kdc.ohhcode.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -20,6 +22,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -27,6 +30,7 @@ import java.util.Map;
 public class AuthUtil {
 
   private final UserRepository userRepository;
+  private final SnippetRepository snippetRepository;
 
   @Value("${jwt.secret.key}")
   private String JWT_SECRET;
@@ -79,6 +83,14 @@ public class AuthUtil {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !authentication.isAuthenticated())
       throw new AccessDeniedException("User is not authenticated");
-    return userRepository.findByUsername(authentication.getName()).orElseThrow(null);
+    return userRepository.findByUsername(authentication.getName()).orElseThrow(() -> new AccessDeniedException("User is not authenticated"));
+  }
+
+  public SnippetEntity validateSnippetOwnership(UUID snippetId, UUID userId) {
+    return snippetRepository
+        .findByIdAndUserId(snippetId, userId)
+        .orElseThrow(
+            () ->
+                new AccessDeniedException("User not authorized to generate analysis for snippet."));
   }
 }
