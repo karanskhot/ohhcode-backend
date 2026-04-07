@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.content.Media;
 //import org.springframework.ai.openaisdk.OpenAiSdkChatOptions;
-import org.springframework.ai.openai.OpenAiChatOptions;
+//import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -36,14 +36,14 @@ public class AiSnippetAnalyzer {
   @Value("classpath:prompt/snippet-analyzer-prompt.st")
   private Resource promptResource;
 
-  public String aiSnippetAnalyzer(SnippetEntity snippetEntity) {
-    String language = snippetEntity.getLanguage().name();
-    String difficulty = snippetEntity.getDifficulty().name();
-    String url = snippetEntity.getUrl();
+  public String aiSnippetAnalyzer(SnippetEntity snippet) {
+    String language = snippet.getLanguage().name();
+    String difficulty = snippet.getDifficulty().name();
+    String url = snippet.getUrl();
 
     String prompt = createPrompt(language, difficulty);
 
-    Media snippet = new Media(MimeTypeUtils.IMAGE_PNG, URI.create(url));
+    Media snippetImg = new Media(MimeTypeUtils.IMAGE_PNG, URI.create(url));
     return chatClient
         .prompt()
         .system(prompt)
@@ -58,7 +58,7 @@ public class AiSnippetAnalyzer {
                 If NO DSA problem or code found:
                 { "meta": { "title": "Invalid Input" } }
                 """)
-                    .media(snippet))
+                    .media(snippetImg))
         .call()
         .content();
   }

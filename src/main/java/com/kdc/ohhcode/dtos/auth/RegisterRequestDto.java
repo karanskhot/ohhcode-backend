@@ -1,7 +1,5 @@
 package com.kdc.ohhcode.dtos.auth;
 
-import com.kdc.ohhcode.entities.enums.CodeLanguage;
-import com.kdc.ohhcode.entities.enums.Language;
 import com.kdc.ohhcode.entities.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

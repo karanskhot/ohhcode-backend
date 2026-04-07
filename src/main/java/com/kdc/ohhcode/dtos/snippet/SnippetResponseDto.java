@@ -1,9 +1,11 @@
 package com.kdc.ohhcode.dtos.snippet;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.kdc.ohhcode.entities.enums.Difficulty;
 import com.kdc.ohhcode.entities.enums.Language;
 import com.kdc.ohhcode.entities.enums.SnippetStatus;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,8 +18,13 @@ public record SnippetResponseDto(
         String memoryNotes,
         Difficulty difficulty,
         boolean important,
-        SnippetStatus snippet,
+        SnippetStatus status,
         Language language,
-        Set<String> tags
+        Set<String> tags,
+        @JsonRawValue
+        String analysis,
+        Instant createdAt,
+        Instant updatedAt,
+        Instant lastAnalyzedAt
         ) {
 }

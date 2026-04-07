@@ -26,69 +26,59 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthUtil {
 
-    private final UserRepository userRepository;
-    @Value("${jwt.secret.key}")
-    private String JWT_SECRET;
-    @Value("${jwt.expiry.ms}")
-    private long JWT_EXPIRY_MS;
+  private final UserRepository userRepository;
 
-    public TokenResponseDto generateToken(String username,
-                                          String role) {
+  @Value("${jwt.secret.key}")
+  private String JWT_SECRET;
 
-        Date issuedAt = new Date();
-        Date expiration = new Date(issuedAt.getTime() + JWT_EXPIRY_MS);
-        Map<String, Object> claims = new HashMap<>();
-        claims.put(
-                "role",
-                role);
+  @Value("${jwt.expiry.ms}")
+  private long JWT_EXPIRY_MS;
 
-        String token = Jwts.builder()
-                .subject(username)
-                .claims(claims)
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .signWith(generateSecretKey())
-                .compact();
+  public TokenResponseDto generateToken(String username, String role) {
 
-        return new TokenResponseDto(
-                token,
-                null,
-                Role.valueOf(role),
-                issuedAt,
-                expiration);
-    }
+    Date issuedAt = new Date();
+    Date expiration = new Date(issuedAt.getTime() + JWT_EXPIRY_MS);
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("role", role);
 
-    public Claims verifySignatureAndGetClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(generateSecretKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-    }
+    String token =
+        Jwts.builder()
+            .subject(username)
+            .claims(claims)
+            .issuedAt(issuedAt)
+            .expiration(expiration)
+            .signWith(generateSecretKey())
+            .compact();
 
-    public SecretKey generateSecretKey() {
-        return Keys.hmacShaKeyFor(JWT_SECRET.getBytes());
-    }
+    return new TokenResponseDto(token, null, Role.valueOf(role), issuedAt, expiration);
+  }
 
-    public ResponseCookie createHttpOnlyResponseCookie(String token) {
-        return ResponseCookie.from(
-                        "token",
-                        token)
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(JWT_EXPIRY_MS / 1000)
-                .sameSite("Lax")
-                .build();
+  public Claims verifySignatureAndGetClaims(String token) {
+    return Jwts.parser()
+        .verifyWith(generateSecretKey())
+        .build()
+        .parseSignedClaims(token)
+        .getPayload();
+  }
 
-    }
+  public SecretKey generateSecretKey() {
+    return Keys.hmacShaKeyFor(JWT_SECRET.getBytes());
+  }
 
-    public UserEntity getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated())
-            throw new AccessDeniedException("User is not authenticated");
-        return userRepository.findByUsername(authentication.getName())
-                .orElseThrow(null);
-    }
+  public ResponseCookie createHttpOnlyResponseCookie(String token) {
+    return ResponseCookie.from("token", token)
+        .httpOnly(true)
+        .secure(false)
+        .path("/")
+        .maxAge(JWT_EXPIRY_MS / 1000)
+        .sameSite("Lax")
+        .build();
+  }
+
+  public UserEntity getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !authentication.isAuthenticated())
+      throw new AccessDeniedException("User is not authenticated");
+    return userRepository.findByUsername(authentication.getName()).orElseThrow(null);
+  }
 }

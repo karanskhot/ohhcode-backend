@@ -1,8 +1,9 @@
 package com.kdc.ohhcode.controllers.snippet;
 
+import com.kdc.ohhcode.dtos.snippet.SnippetProgressTracker;
 import com.kdc.ohhcode.dtos.snippet.SnippetRequestDto;
 import com.kdc.ohhcode.dtos.snippet.SnippetResponseDto;
-import com.kdc.ohhcode.services.snippet.CodeSnippetService;
+import com.kdc.ohhcode.services.snippet.SnippetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,28 +18,40 @@ import java.util.UUID;
 @RequestMapping("/snippets")
 public class SnippetController {
 
-  private final CodeSnippetService codeSnippetService;
+  private final SnippetService snippetService;
 
   @PostMapping
   public ResponseEntity<SnippetResponseDto> createSnippet(
       @ModelAttribute @Valid SnippetRequestDto snippetRequestDto) {
 
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(codeSnippetService.createSnippet(snippetRequestDto));
+        .body(snippetService.createSnippet(snippetRequestDto));
   }
+
+  @PostMapping("/{id}/analyze")
+  public ResponseEntity<SnippetProgressTracker> createSnippetAnalysis(@PathVariable UUID id) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(snippetService.startAnalysis(id));
+  }
+
   @GetMapping
   public ResponseEntity<List<SnippetResponseDto>> getAllSnippets() {
-    return ResponseEntity.status(HttpStatus.OK).body(codeSnippetService.getAllCodeSnippets());
+    return ResponseEntity.status(HttpStatus.OK).body(snippetService.getAllCodeSnippets());
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<SnippetResponseDto> getSnippet(@PathVariable UUID id) {
-    return ResponseEntity.status(HttpStatus.OK).body(codeSnippetService.getCodeSnippetById(id));
+    return ResponseEntity.status(HttpStatus.OK).body(snippetService.getCodeSnippetById(id));
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteSnippet(@PathVariable UUID id) {
-    codeSnippetService.deleteCodeSnippet(id);
+    snippetService.deleteCodeSnippet(id);
+    return ResponseEntity.noContent().build();
+  }
+
+  @DeleteMapping("/{id}/analyze")
+  public ResponseEntity<Void> deleteAnalysis(@PathVariable UUID id) {
+    snippetService.deleteAnalysis(id);
     return ResponseEntity.noContent().build();
   }
 }

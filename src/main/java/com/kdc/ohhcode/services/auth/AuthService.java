@@ -18,54 +18,47 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
-    private final AuthUtil authUtil;
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final AuthenticationManager authenticationManager;
+  private final AuthUtil authUtil;
 
-    public RegisterResponseDto register(RegisterRequestDto registerRequestDto) {
+  public RegisterResponseDto register(RegisterRequestDto registerRequestDto) {
 
-        if (userRepository.existsByUsername(registerRequestDto.username())) {
-            throw new DataIntegrityViolationException("user already exists.");
-        }
-        Role role = registerRequestDto.role() != null ? registerRequestDto.role() : Role.ROLE_USER;
-
-
-        UserEntity user = UserEntity.builder()
-                .firstName(registerRequestDto.firstName())
-                .lastName(registerRequestDto.lastName())
-                .username(registerRequestDto.username())
-                .password(passwordEncoder.encode(registerRequestDto.password()))
-                .role(role)
-                .enabled(true)
-                .build();
-
-        userRepository.save(user);
-
-        return new RegisterResponseDto(
-                "Registration successful",
-                user.getUsername());
+    if (userRepository.existsByUsername(registerRequestDto.username())) {
+      throw new DataIntegrityViolationException("user already exists.");
     }
+    Role role = registerRequestDto.role() != null ? registerRequestDto.role() : Role.ROLE_USER;
 
-    public LoginResponseDto login(LoginRequestDto loginRequestDto) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginRequestDto.username(),
-                loginRequestDto.password()
-        ));
+    UserEntity user =
+        UserEntity.builder()
+            .firstName(registerRequestDto.firstName())
+            .lastName(registerRequestDto.lastName())
+            .username(registerRequestDto.username())
+            .password(passwordEncoder.encode(registerRequestDto.password()))
+            .role(role)
+            .enabled(true)
+            .build();
 
-        UserEntity user = userRepository.findByUsername(loginRequestDto.username())
-                .orElseThrow(() -> new BadCredentialsException(null) {
-                });
+    userRepository.save(user);
 
-        String role = user.getRole()
-                .name();
+    return new RegisterResponseDto("Registration successful", user.getUsername());
+  }
 
-        TokenResponseDto tokenResponseDto = authUtil.generateToken(
-                user.getUsername(),
-                role);
+  public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+    authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(
+            loginRequestDto.username(), loginRequestDto.password()));
 
-        return new LoginResponseDto(
-                user.getUsername(),
-                tokenResponseDto);
-    }
+    UserEntity user =
+        userRepository
+            .findByUsername(loginRequestDto.username())
+            .orElseThrow(() -> new BadCredentialsException(null) {});
+
+    String role = user.getRole().name();
+
+    TokenResponseDto tokenResponseDto = authUtil.generateToken(user.getUsername(), role);
+
+    return new LoginResponseDto(user.getUsername(), tokenResponseDto);
+  }
 }

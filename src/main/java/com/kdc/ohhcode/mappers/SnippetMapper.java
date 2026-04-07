@@ -20,7 +20,11 @@ public class SnippetMapper {
                 snippetEntity.getImportant(),
                 snippetEntity.getStatus(),
                 snippetEntity.getLanguage(),
-                snippetEntity.getTags()
+                snippetEntity.getTags(),
+                snippetEntity.getAnalysis(),
+                snippetEntity.getCreatedAt(),
+                snippetEntity.getUpdatedAt(),
+                snippetEntity.getLastAnalyzedAt()
                 );
     }
 }

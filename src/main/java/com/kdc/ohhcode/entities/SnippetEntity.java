@@ -5,6 +5,7 @@ import com.kdc.ohhcode.entities.enums.Language;
 import com.kdc.ohhcode.entities.enums.SnippetStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.Internal;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -19,58 +20,60 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-@Table(name = "snippets",
-        uniqueConstraints = @UniqueConstraint(
-                columnNames = {"user_id", "hash_code"}
-        )
-)
+@Table(
+    name = "snippets",
+    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "hash_code"}))
 public class SnippetEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    private String title;
+  private String title;
 
-    @Column(name="url", nullable = false)
-    private String url;
+  @Column(name = "url", nullable = false)
+  private String url;
 
-    @Column(name = "hash_code",  nullable = false)
-    private String hashCode;
+  @Column(name = "hash_code", nullable = false)
+  private String hashCode;
 
-    private Boolean important;
+  private Boolean important;
 
-    @Column(name = "memory_notes")
-    private String memoryNotes;
+  @Column(name = "memory_notes")
+  private String memoryNotes;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private SnippetStatus status;
+  @Column(name = "status")
+  @Enumerated(EnumType.STRING)
+  private SnippetStatus status;
 
-    @Column(name = "difficulty")
-    @Enumerated(EnumType.STRING)
-    private Difficulty difficulty;
+  @Column(name = "difficulty")
+  @Enumerated(EnumType.STRING)
+  private Difficulty difficulty;
 
-    @Column(name = "language")
-    @Enumerated(EnumType.STRING)
-    private Language language;
+  @Column(name = "language")
+  @Enumerated(EnumType.STRING)
+  private Language language;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "snippet_tags", joinColumns = @JoinColumn(name = "snippet_id"))
-    @Column(name = "tag")
-    private Set<String> tags = new HashSet<>();
+  @Column(name = "analysis", columnDefinition = "TEXT")
+  private String analysis;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+  @ElementCollection(fetch = FetchType.LAZY)
+  @CollectionTable(name = "snippet_tags", joinColumns = @JoinColumn(name = "snippet_id"))
+  @Column(name = "tag")
+  private Set<String> tags = new HashSet<>();
 
-    @OneToOne(mappedBy = "snippet", cascade = CascadeType.ALL, orphanRemoval = true)
-    private AnalyzerEntity analysis;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private UserEntity user;
 
-    @CreationTimestamp
-    private Instant createdAt;
+  @Column(name = "last_analyzed_at")
+  private Instant lastAnalyzedAt;
 
-    @UpdateTimestamp
-    private Instant updatedAt;
+  @CreationTimestamp
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private Instant createdAt;
 
+  @UpdateTimestamp
+  @Column(name = "updated_at", nullable = false)
+  private Instant updatedAt;
 }

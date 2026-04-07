@@ -1,5 +1,7 @@
 package com.kdc.ohhcode.constants;
 
+import com.kdc.ohhcode.entities.enums.SnippetStatus;
+
 import java.util.List;
 
 public class AppConstants {
@@ -93,4 +95,17 @@ public class AppConstants {
                   "message": "AI processing failed"
                 }
                 """;
+
+  public static String getMessage(SnippetStatus status) {
+    return switch (status) {
+      case UPLOADED -> "Ready to analyze";
+      case ANALYZING -> "Snippet is getting analyzed.";
+      case ANALYZED -> "Completed";
+      case FAILED -> "Analysis failed";
+      default -> "";
+    };
+  }
+
+  public static final List<String> ALLOWED_TYPES =
+          List.of("image/jpeg", "image/png", "image/gif", "image/webp");
 }
