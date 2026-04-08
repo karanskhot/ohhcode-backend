@@ -1,10 +1,7 @@
 package com.kdc.ohhcode.services.snippet;
 
 import com.kdc.ohhcode.constants.AppConstants;
-import com.kdc.ohhcode.dtos.snippet.SnippetFilterDto;
-import com.kdc.ohhcode.dtos.snippet.SnippetProgressTracker;
-import com.kdc.ohhcode.dtos.snippet.SnippetRequestDto;
-import com.kdc.ohhcode.dtos.snippet.SnippetResponseDto;
+import com.kdc.ohhcode.dtos.snippet.*;
 import com.kdc.ohhcode.entities.SnippetEntity;
 import com.kdc.ohhcode.entities.UserEntity;
 import com.kdc.ohhcode.entities.enums.Difficulty;
@@ -38,7 +35,7 @@ public class SnippetService {
   private final SnippetAnalysisService snippetAnalysisService;
 
   @Transactional
-  public SnippetResponseDto createSnippet(SnippetRequestDto snippetRequestDto) {
+  public SnippetCreateResponseDto createSnippet(SnippetRequestDto snippetRequestDto) {
 
     UserEntity user = authUtil.getCurrentUser();
 
@@ -51,7 +48,8 @@ public class SnippetService {
     Optional<SnippetEntity> snippet = snippetRepository.findByUserIdAndHashCode(user.getId(), hash);
 
     if (snippet.isPresent()) {
-      return snippetMapper.toDto(snippet.get());
+      return new SnippetCreateResponseDto(
+          "You already have this snippet added.", snippet.get().getId());
     }
 
     Optional<SnippetEntity> globalSnippet = snippetRepository.findFirstByHashCode(hash);
@@ -62,30 +60,22 @@ public class SnippetService {
       url = appConfig.uploadImage(snippetRequestDto.snippetImage());
     }
 
-    Language language = Objects.requireNonNullElse(snippetRequestDto.language(), Language.ENGLISH);
-    Difficulty difficulty =
-        Objects.requireNonNullElse(snippetRequestDto.difficulty(), Difficulty.MEDIUM);
-
     SnippetEntity snippetEntity =
         SnippetEntity.builder()
             .title(snippetRequestDto.title())
             .url(url)
             .hashCode(hash)
             .status(SnippetStatus.UPLOADED)
-            .language(language)
-            .difficulty(difficulty)
-            .important(Boolean.TRUE.equals(snippetRequestDto.important()))
             .tags(Collections.emptySet())
             .user(user)
             .analysis(null)
-            .memoryNotes(snippetRequestDto.memoryNotes())
             .lastAnalyzedAt(null)
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
             .build();
 
     snippetRepository.save(snippetEntity);
-    return snippetMapper.toDto(snippetEntity);
+    return new SnippetCreateResponseDto("Snippet added successfully.", snippetEntity.getId());
   }
 
   public SnippetResponseDto getSnippet(UUID id) {
@@ -102,9 +92,13 @@ public class SnippetService {
   }
 
   @Transactional
-  public SnippetProgressTracker startAnalysis(@Valid UUID snippetId) {
+  public SnippetProgressTracker startAnalysis(UUID snippetId, AnalyzeRequest analyzeRequest) {
     UserEntity user = authUtil.getCurrentUser();
 
+    Language language =
+        (analyzeRequest == null || analyzeRequest.language() == null)
+            ? Language.ENGLISH
+            : analyzeRequest.language();
     // 1: fetch snippet by snippetId and userId -- throw authentication error if not exist
     SnippetEntity snippet = authUtil.validateSnippetOwnership(snippetId, user.getId());
 
@@ -119,7 +113,7 @@ public class SnippetService {
           snippetId, SnippetStatus.ANALYZING, AppConstants.getMessage(SnippetStatus.ANALYZING));
     }
 
-    snippetAnalysisService.processAnalysisAsync(snippetId, user.getId());
+    snippetAnalysisService.processAnalysisAsync(snippetId, user.getId(), language);
     return new SnippetProgressTracker(
         snippet.getId(), SnippetStatus.ANALYZING, AppConstants.getMessage(SnippetStatus.ANALYZING));
   }
@@ -138,6 +132,7 @@ public class SnippetService {
 
   public Page<SnippetResponseDto> getAllSnippetsSpec(SnippetFilterDto filter, Pageable pageable) {
     UserEntity user = authUtil.getCurrentUser();
+    log.info("CURRENT USER ID : {} " ,  user.getId());
     Specification<SnippetEntity> spec =
         Specification.where(SnippetSpecification.hasUser(user.getId()))
             .and(SnippetSpecification.hasStatus(filter.status()))

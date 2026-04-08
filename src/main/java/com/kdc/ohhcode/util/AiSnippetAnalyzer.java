@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kdc.ohhcode.constants.AppConstants;
+import com.kdc.ohhcode.dtos.snippet.AnalyzeRequest;
 import com.kdc.ohhcode.entities.SnippetEntity;
+import com.kdc.ohhcode.entities.enums.Language;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -34,12 +36,11 @@ public class AiSnippetAnalyzer {
   @Value("classpath:prompt/snippet-analyzer-prompt.st")
   private Resource promptResource;
 
-  public String aiSnippetAnalyzer(SnippetEntity snippet) {
-    String language = snippet.getLanguage().name();
-    String difficulty = snippet.getDifficulty().name();
+  public String aiSnippetAnalyzer(SnippetEntity snippet, Language language) {
     String url = snippet.getUrl();
 
-    String prompt = createPrompt(language, difficulty);
+    String prompt = createPrompt(language);
+    snippet.setLanguage(language);
 
     Media snippetImg = new Media(MimeTypeUtils.IMAGE_PNG, URI.create(url));
     return chatClient
@@ -61,25 +62,24 @@ public class AiSnippetAnalyzer {
         .content();
   }
 
-  private String createPrompt(String language, String difficulty) {
+  private String createPrompt(Language language) {
 
-    log.info("Creating prompt... language={}, difficulty={}", language, difficulty);
+
 
     try {
       String template =
           new String(promptResource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
-      String safeLanguage = language != null ? language : "ENGLISH";
-      String safeDifficulty = difficulty != null ? difficulty : "MEDIUM";
+      String safeLanguage =
+         language != null ? language.name() : "ENGLISH";
+      log.info("Creating prompt... language={}", language);
+
       String tagsForPrompt =
           AppConstants.ALLOWED_TAGS.stream()
               .map(tag -> " - " + tag)
               .collect(Collectors.joining("\n"));
 
-      return template
-          .replace("{{language}}", safeLanguage)
-          .replace("{{difficulty}}", safeDifficulty)
-          .replace("{{tags}}", tagsForPrompt);
+      return template.replace("{{language}}", safeLanguage).replace("{{tags}}", tagsForPrompt);
     } catch (IOException e) {
       throw new RuntimeException("Failed to build prompt", e);
     }

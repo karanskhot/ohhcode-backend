@@ -17,7 +17,7 @@ public record SnippetResponseDto(
         UUID userId,
         String memoryNotes,
         Difficulty difficulty,
-        boolean important,
+        Boolean important,
         SnippetStatus status,
         Language language,
         Set<String> tags,

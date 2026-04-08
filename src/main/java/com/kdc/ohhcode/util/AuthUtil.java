@@ -73,6 +73,7 @@ public class AuthUtil {
     return ResponseCookie.from("token", token)
         .httpOnly(true)
         .secure(false)
+        .domain("localhost")
         .path("/")
         .maxAge(JWT_EXPIRY_MS / 1000)
         .sameSite("Lax")
@@ -83,14 +84,14 @@ public class AuthUtil {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !authentication.isAuthenticated())
       throw new AccessDeniedException("User is not authenticated");
-    return userRepository.findByUsername(authentication.getName()).orElseThrow(() -> new AccessDeniedException("User is not authenticated"));
+    return userRepository
+        .findByUsername(authentication.getName())
+        .orElseThrow(() -> new AccessDeniedException("User is not authenticated"));
   }
 
   public SnippetEntity validateSnippetOwnership(UUID snippetId, UUID userId) {
     return snippetRepository
         .findByIdAndUserId(snippetId, userId)
-        .orElseThrow(
-            () ->
-                new AccessDeniedException("User not authorized to generate analysis for snippet."));
+        .orElseThrow(() -> new AccessDeniedException("User not authorized to view snippet."));
   }
 }

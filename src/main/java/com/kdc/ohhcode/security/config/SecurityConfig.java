@@ -1,5 +1,7 @@
 package com.kdc.ohhcode.security.config;
 
+import com.nimbusds.jose.proc.SecurityContext;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,6 +44,16 @@ public class SecurityConfig {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
+//        .logout(
+//            logout ->
+//                logout
+//                    .logoutUrl("/auth/logout")
+//                    .invalidateHttpSession(true)
+//                    .deleteCookies("JSESSIONID")
+//                    .logoutSuccessHandler(
+//                        (request, response, authentication) -> {
+//                          response.setStatus(HttpServletResponse.SC_OK);
+//                        }))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(
             exceptionHandler ->

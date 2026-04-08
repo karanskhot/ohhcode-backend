@@ -1,7 +1,9 @@
 package com.kdc.ohhcode.services.snippet;
 
 import com.kdc.ohhcode.constants.AppConstants;
+import com.kdc.ohhcode.dtos.snippet.AnalyzeRequest;
 import com.kdc.ohhcode.entities.SnippetEntity;
+import com.kdc.ohhcode.entities.enums.Language;
 import com.kdc.ohhcode.entities.enums.SnippetStatus;
 import com.kdc.ohhcode.repositories.SnippetRepository;
 import com.kdc.ohhcode.util.AiSnippetAnalyzer;
@@ -30,7 +32,7 @@ public class SnippetAnalysisService {
 
   @Async
   @Transactional
-  public void processAnalysisAsync(UUID snippetId, UUID userId) {
+  public void processAnalysisAsync(UUID snippetId, UUID userId, Language language) {
 
     log.info("AI processing started for snippet {}", snippetId);
 
@@ -44,10 +46,8 @@ public class SnippetAnalysisService {
     }
 
     try {
-      processAnalysis(snippet);
+      processAnalysis(snippet, language);
       markSuccess(snippet);
-
-      snippet.setUpdatedAt(Instant.now());
 
       log.info("AI processing completed for snippet {}", snippet.getId());
 
@@ -60,11 +60,11 @@ public class SnippetAnalysisService {
     snippetRepository.save(snippet);
   }
 
-  private String callWithRetry(SnippetEntity snippet) {
+  private String callWithRetry(SnippetEntity snippet, Language language) {
     int attempt = 0;
     while (attempt < MAX_RETRIES) {
       try {
-        return callWithTimeout(snippet);
+        return callWithTimeout(snippet, language);
       } catch (Exception e) {
         attempt++;
         log.info("Attempt - {} :  AI processing failed for snippet {}", attempt, snippet.getId());
@@ -73,8 +73,8 @@ public class SnippetAnalysisService {
     throw new RuntimeException("AI processing failed for snippet " + snippet.getId());
   }
 
-  private String callWithTimeout(SnippetEntity snippet) {
-    return CompletableFuture.supplyAsync(() -> aiSnippetAnalyzer.aiSnippetAnalyzer(snippet))
+  private String callWithTimeout(SnippetEntity snippet, Language language) {
+    return CompletableFuture.supplyAsync(() -> aiSnippetAnalyzer.aiSnippetAnalyzer(snippet, language))
         .orTimeout(60, TimeUnit.SECONDS)
         .completeOnTimeout(AppConstants.FALLBACK_RESPONSE, 60, TimeUnit.SECONDS)
         .exceptionally(
@@ -85,8 +85,8 @@ public class SnippetAnalysisService {
         .join();
   }
 
-  private void processAnalysis(SnippetEntity snippet) {
-    String rawResponse = callWithRetry(snippet);
+  private void processAnalysis(SnippetEntity snippet, Language language) {
+    String rawResponse = callWithRetry(snippet, language);
 
     boolean isValid = aiSnippetAnalyzer.extractIsValid(rawResponse);
 

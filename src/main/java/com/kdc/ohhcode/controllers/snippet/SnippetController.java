@@ -1,9 +1,7 @@
 package com.kdc.ohhcode.controllers.snippet;
 
-import com.kdc.ohhcode.dtos.snippet.SnippetFilterDto;
-import com.kdc.ohhcode.dtos.snippet.SnippetProgressTracker;
-import com.kdc.ohhcode.dtos.snippet.SnippetRequestDto;
-import com.kdc.ohhcode.dtos.snippet.SnippetResponseDto;
+import com.kdc.ohhcode.dtos.snippet.*;
+import com.kdc.ohhcode.entities.enums.Language;
 import com.kdc.ohhcode.services.snippet.SnippetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +24,7 @@ public class SnippetController {
   private final SnippetService snippetService;
 
   @PostMapping
-  public ResponseEntity<SnippetResponseDto> createSnippet(
+  public ResponseEntity<SnippetCreateResponseDto> createSnippet(
       @ModelAttribute @Valid SnippetRequestDto snippetRequestDto) {
 
     return ResponseEntity.status(HttpStatus.CREATED)
@@ -34,8 +32,8 @@ public class SnippetController {
   }
 
   @PostMapping("/{id}/analyze")
-  public ResponseEntity<SnippetProgressTracker> createSnippetAnalysis(@PathVariable UUID id) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(snippetService.startAnalysis(id));
+  public ResponseEntity<SnippetProgressTracker> createSnippetAnalysis(@PathVariable UUID id,  @RequestBody AnalyzeRequest analyzeRequest) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(snippetService.startAnalysis(id, analyzeRequest));
   }
 
 

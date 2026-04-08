@@ -29,11 +29,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      @NonNull HttpServletRequest request,
-      @NonNull HttpServletResponse response,
-      @NonNull FilterChain filterChain) {
-    try {
+          @NonNull HttpServletRequest request,
+          @NonNull HttpServletResponse response,
+          @NonNull FilterChain filterChain) {
 
+    try {
       String token = null;
 
       String authHeader = request.getHeader("Authorization");
@@ -44,30 +44,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
       if (token == null && request.getCookies() != null) {
         for (Cookie cookie : request.getCookies()) {
-          if (cookie.getName().equals("token")) {
+          if ("token".equals(cookie.getName())) {
             token = cookie.getValue();
             break;
           }
         }
       }
 
-      if (token == null) {
-        filterChain.doFilter(request, response);
-        return;
-      }
+      if (token != null) {
 
-      if (SecurityContextHolder.getContext().getAuthentication() == null) {
+        // 🔥 FORCE CLEAN CONTEXT
+        SecurityContextHolder.clearContext();
+
         Claims claims = authUtil.verifySignatureAndGetClaims(token);
         String username = claims.getSubject();
+
         List<SimpleGrantedAuthority> authorities =
-            List.of(new SimpleGrantedAuthority(claims.get("role").toString()));
-        UsernamePasswordAuthenticationToken authenticationToken =
-            new UsernamePasswordAuthenticationToken(username, null, authorities);
-        authenticationToken.setDetails(new WebAuthenticationDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                List.of(new SimpleGrantedAuthority(claims.get("role").toString()));
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(username, null, authorities);
+
+        authentication.setDetails(new WebAuthenticationDetails(request));
+
+        // 🔥 ALWAYS SET (NO CONDITIONS)
+        SecurityContextHolder.getContext().setAuthentication(authentication);
       }
 
       filterChain.doFilter(request, response);
+
     } catch (Exception e) {
       handlerExceptionResolver.resolveException(request, response, null, e);
     }

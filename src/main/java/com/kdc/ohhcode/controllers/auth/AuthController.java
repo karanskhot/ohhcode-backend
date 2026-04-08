@@ -22,24 +22,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
-    private final AuthUtil authUtil;
+  private final AuthService authService;
+  private final AuthUtil authUtil;
 
-    @PostMapping("/register")
-    public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody RegisterRequestDto registerRequestDto) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(authService.register(registerRequestDto));
-    }
+  @PostMapping("/register")
+  public ResponseEntity<RegisterResponseDto> register(
+      @Valid @RequestBody RegisterRequestDto registerRequestDto) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(registerRequestDto));
+  }
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
-        LoginResponseDto loginResponseDto = authService.login(loginRequestDto);
-        ResponseCookie cookie = authUtil.createHttpOnlyResponseCookie(loginResponseDto.authData()
-                                                                              .token());
-        return ResponseEntity.status(HttpStatus.OK)
-                .header(
-                        HttpHeaders.SET_COOKIE,
-                        cookie.toString())
-                .body(loginResponseDto);
-    }
+  @PostMapping("/login")
+  public ResponseEntity<LoginResponseDto> login(
+      @Valid @RequestBody LoginRequestDto loginRequestDto) {
+    LoginResponseDto loginResponseDto = authService.login(loginRequestDto);
+    ResponseCookie cookie =
+        authUtil.createHttpOnlyResponseCookie(loginResponseDto.authData().token());
+    ResponseCookie deleteCookie = ResponseCookie.from("token", "").path("/").maxAge(0).build();
+    return ResponseEntity.status(HttpStatus.OK)
+        .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+        .header(HttpHeaders.SET_COOKIE, cookie.toString())
+        .body(loginResponseDto);
+  }
 }

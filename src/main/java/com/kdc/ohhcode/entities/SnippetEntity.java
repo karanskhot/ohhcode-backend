@@ -37,7 +37,9 @@ public class SnippetEntity {
   @Column(name = "hash_code", nullable = false)
   private String hashCode;
 
-  private Boolean important;
+  @Column(name = "important")
+  @Builder.Default
+  private Boolean important = false;
 
   @Column(name = "memory_notes")
   private String memoryNotes;
@@ -48,11 +50,13 @@ public class SnippetEntity {
 
   @Column(name = "difficulty")
   @Enumerated(EnumType.STRING)
-  private Difficulty difficulty;
+  @Builder.Default
+  private Difficulty difficulty = Difficulty.MEDIUM;
 
   @Column(name = "language")
   @Enumerated(EnumType.STRING)
-  private Language language;
+  @Builder.Default
+  private Language language =  Language.ENGLISH;
 
   @Column(name = "analysis", columnDefinition = "TEXT")
   private String analysis;

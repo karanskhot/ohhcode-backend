@@ -19,7 +19,7 @@ public final class SnippetSpecification {
 
   public static Specification<SnippetEntity> hasUser(UUID userId) {
     return (root, query, cb) ->
-        userId == null ? null : cb.equal(root.get("user").get("id"), userId);
+            cb.equal(root.get("user").get("id"), userId);
   }
 
   public static Specification<SnippetEntity> hasStatus(SnippetStatus status) {
