@@ -37,9 +37,9 @@ public class AuthController {
     LoginResponseDto loginResponseDto = authService.login(loginRequestDto);
     ResponseCookie cookie =
         authUtil.createHttpOnlyResponseCookie(loginResponseDto.authData().token());
-    ResponseCookie deleteCookie = ResponseCookie.from("token", "").path("/").maxAge(0).build();
+//    ResponseCookie deleteCookie = ResponseCookie.from("token", "").path("/").maxAge(0).build();
     return ResponseEntity.status(HttpStatus.OK)
-        .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+//        .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
         .header(HttpHeaders.SET_COOKIE, cookie.toString())
         .body(loginResponseDto);
   }

@@ -78,8 +78,6 @@ public class AppConstants {
           "Radix Sort",
           "Strongly Connected Component",
           "Rejection Sampling",
-          "Object Oriented Programming",
-          "Spring/Spring Boot",
           "Biconnected Component");
 
   public static final String  FALLBACK_RESPONSE = """

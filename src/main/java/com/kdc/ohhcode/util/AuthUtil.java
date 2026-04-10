@@ -73,7 +73,6 @@ public class AuthUtil {
     return ResponseCookie.from("token", token)
         .httpOnly(true)
         .secure(false)
-        .domain("localhost")
         .path("/")
         .maxAge(JWT_EXPIRY_MS / 1000)
         .sameSite("Lax")

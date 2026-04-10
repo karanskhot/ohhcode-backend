@@ -95,11 +95,13 @@ public class SnippetAnalysisService {
             .filter(AppConstants.ALLOWED_TAGS::contains)
             .collect(Collectors.toSet());
 
+    String aiTitle =  aiSnippetAnalyzer.extractTitle(rawResponse);
     if (snippet.getTags().isEmpty()) {
       snippet.setTags(aiTags);
     }
 
     snippet.setAnalysis(rawResponse);
+    snippet.setTitle(aiTitle);
     snippet.setStatus(isValid ? SnippetStatus.ANALYZED : SnippetStatus.FAILED);
   }
 

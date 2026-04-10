@@ -111,4 +111,14 @@ public class AiSnippetAnalyzer {
       return Collections.emptySet();
     }
   }
+
+  public String extractTitle(String rawResponse) {
+    try {
+      JsonNode root = mapper.readTree(rawResponse);
+      JsonNode titleNode = root.path("meta").path("title");
+      return titleNode.asText();
+    } catch (Exception e) {
+      return "";
+    }
+  }
 }

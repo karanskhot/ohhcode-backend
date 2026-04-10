@@ -43,6 +43,11 @@ public class SnippetController {
     return ResponseEntity.status(HttpStatus.OK).body(snippetService.getSnippet(id));
   }
 
+  @PatchMapping("/{id}")
+  public ResponseEntity<SnippetCreateResponseDto> updateSnippet(@PathVariable UUID id, @RequestBody SnippetUpdateRequestDto snippetUpdateRequestDto ) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(snippetService.updateSnippet(id, snippetUpdateRequestDto));
+  }
+
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteSnippet(@PathVariable UUID id) {
     snippetService.deleteCodeSnippet(id);

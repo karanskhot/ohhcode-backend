@@ -32,8 +32,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           @NonNull HttpServletRequest request,
           @NonNull HttpServletResponse response,
           @NonNull FilterChain filterChain) {
-
     try {
+
       String token = null;
 
       String authHeader = request.getHeader("Authorization");
@@ -44,35 +44,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
       if (token == null && request.getCookies() != null) {
         for (Cookie cookie : request.getCookies()) {
-          if ("token".equals(cookie.getName())) {
+          if (cookie.getName().equals("token")) {
             token = cookie.getValue();
             break;
           }
         }
       }
 
-      if (token != null) {
-
-        // 🔥 FORCE CLEAN CONTEXT
-        SecurityContextHolder.clearContext();
-
+      if (token == null) {
+        filterChain.doFilter(request, response);
+        return;
+      }
+      SecurityContextHolder.clearContext();
+      if (SecurityContextHolder.getContext().getAuthentication() == null) {
         Claims claims = authUtil.verifySignatureAndGetClaims(token);
         String username = claims.getSubject();
-
         List<SimpleGrantedAuthority> authorities =
                 List.of(new SimpleGrantedAuthority(claims.get("role").toString()));
-
-        UsernamePasswordAuthenticationToken authentication =
+        UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(username, null, authorities);
-
-        authentication.setDetails(new WebAuthenticationDetails(request));
-
-        // 🔥 ALWAYS SET (NO CONDITIONS)
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        authenticationToken.setDetails(new WebAuthenticationDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
       }
 
       filterChain.doFilter(request, response);
-
     } catch (Exception e) {
       handlerExceptionResolver.resolveException(request, response, null, e);
     }

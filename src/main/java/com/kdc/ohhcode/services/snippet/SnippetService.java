@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -126,13 +127,13 @@ public class SnippetService {
       throw new IllegalStateException("Analysis is in progress. Cannot delete now.");
     }
     snippet.setAnalysis(null);
+    snippet.setTags(Collections.emptySet());
     snippet.setStatus(SnippetStatus.UPLOADED);
     snippetRepository.save(snippet);
   }
 
   public Page<SnippetResponseDto> getAllSnippetsSpec(SnippetFilterDto filter, Pageable pageable) {
     UserEntity user = authUtil.getCurrentUser();
-    log.info("CURRENT USER ID : {} " ,  user.getId());
     Specification<SnippetEntity> spec =
         Specification.where(SnippetSpecification.hasUser(user.getId()))
             .and(SnippetSpecification.hasStatus(filter.status()))
@@ -143,5 +144,32 @@ public class SnippetService {
 
     Page<SnippetEntity> snippetsPage = snippetRepository.findAll(spec, pageable);
     return snippetsPage.map(snippetMapper::toDto);
+  }
+
+  public SnippetCreateResponseDto updateSnippet(
+      UUID id, SnippetUpdateRequestDto snippetUpdateRequestDto) {
+
+    UserEntity user = authUtil.getCurrentUser();
+    SnippetEntity snippet = authUtil.validateSnippetOwnership(id, user.getId());
+    if (snippetUpdateRequestDto.title() != null && !snippetUpdateRequestDto.title().isEmpty()) {
+      snippet.setTitle(snippetUpdateRequestDto.title());
+    }
+    if (snippetUpdateRequestDto.important() != null) {
+      snippet.setImportant(snippetUpdateRequestDto.important());
+    }
+    if (snippetUpdateRequestDto.memoryNotes() != null) {
+      snippet.setMemoryNotes(snippetUpdateRequestDto.memoryNotes());
+    }
+    if (snippetUpdateRequestDto.difficulty() != null) {
+      snippet.setDifficulty(snippetUpdateRequestDto.difficulty());
+    }
+    if (snippetUpdateRequestDto.tags() != null) {
+      snippet.setTags(
+          snippetUpdateRequestDto.tags().stream()
+              .map(String::trim)
+              .collect(Collectors.toSet()));
+    }
+    snippetRepository.save(snippet);
+    return new SnippetCreateResponseDto("Snippet updated successfully.", snippet.getId());
   }
 }
