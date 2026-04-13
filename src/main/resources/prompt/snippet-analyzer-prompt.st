@@ -165,7 +165,7 @@ OUTPUT (STRICT JSON ONLY)
     "extracted": ""
   },
   "recall": {
-    "summary": "",
+    "summary": [],
     "recognitionSignals": [],
     "whenToUse": []
   },

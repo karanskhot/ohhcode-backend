@@ -23,7 +23,7 @@ public final class SnippetSpecification {
   }
 
   public static Specification<SnippetEntity> hasStatus(SnippetStatus status) {
-    return (root, query, cb) -> status == null ? null : cb.equal(root.get("status"), status);
+    return (root, query, cb) -> status == null ? null : cb.in(root.get("status")).value(status);
   }
 
   public static Specification<SnippetEntity> hasDifficulty(Difficulty difficulty) {
