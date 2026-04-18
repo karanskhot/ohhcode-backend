@@ -2,10 +2,16 @@ spring:
   application:
     name: ohhcode
   datasource:
-    url: jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:ohhcode}?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
-    username: ${MYSQLUSER:root}
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${MYSQLUSER}
+    password: ${MYSQLPASSWORD}
+#    url: jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:ohhcode}?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+#    username: ${MYSQLUSER:root}
 
-    password: ${MYSQLPASSWORD:root}
+
+
+
+#    password: ${MYSQLPASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
@@ -27,7 +33,7 @@ spring:
       max-file-size: 2MB
       max-request-size: 2MB
 server:
-  port: ${PORT:8080}
+  port: ${PORT}
   servlet:
     context-path: /api/v1
 
