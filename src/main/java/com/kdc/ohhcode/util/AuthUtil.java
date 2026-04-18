@@ -75,7 +75,7 @@ public class AuthUtil {
                          .secure(true)
                          .path("/")
                          .maxAge(JWT_EXPIRY_MS / 1000)
-                         .sameSite("Lax")
+                         .sameSite("None")
                          .build();
   }
 

@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -40,20 +41,12 @@ public class SecurityConfig {
         .securityContext(sc -> sc.securityContextRepository(new NullSecurityContextRepository()))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/auth/login", "/auth/register", "/oauth2/**", "/health")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-//        .logout(
-//            logout ->
-//                logout
-//                    .logoutUrl("/auth/logout")
-//                    .invalidateHttpSession(true)
-//                    .deleteCookies("JSESSIONID")
-//                    .logoutSuccessHandler(
-//                        (request, response, authentication) -> {
-//                          response.setStatus(HttpServletResponse.SC_OK);
-//                        }))
+                auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/oauth2/**", "/health")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(
             exceptionHandler ->
@@ -67,7 +60,7 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://192.168.31.21:3000" , "https://ohhcode.vercel.app"));
+    configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://ohhcode.vercel.app"));
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
     configuration.setAllowCredentials(true);
