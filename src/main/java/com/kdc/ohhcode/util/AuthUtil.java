@@ -72,10 +72,10 @@ public class AuthUtil {
   public ResponseCookie createHttpOnlyResponseCookie(String token) {
     return ResponseCookie.from("token", token)
                          .httpOnly(true)
-                         .secure(true)
+                         .secure(false)
                          .path("/")
                          .maxAge(JWT_EXPIRY_MS / 1000)
-                         .sameSite("None")
+                         .sameSite("Lax")
                          .build();
   }
 
