@@ -74,6 +74,7 @@ public class AuthUtil {
                          .httpOnly(true)
                          .secure(true)
                          .path("/")
+                         .domain("ohhcode.up.railway.app")
                          .maxAge(JWT_EXPIRY_MS / 1000)
                          .sameSite("None")
                          .build();
