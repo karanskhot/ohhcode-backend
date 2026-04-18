@@ -8,9 +8,12 @@ import com.kdc.ohhcode.repositories.UserRepository;
 import com.kdc.ohhcode.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -60,5 +63,17 @@ public class AuthService {
     TokenResponseDto tokenResponseDto = authUtil.generateToken(user.getUsername(), role);
 
     return new LoginResponseDto(user.getUsername(), tokenResponseDto);
+  }
+
+  public CurrenUserDto getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !authentication.isAuthenticated())
+      throw new AccessDeniedException("User is not authenticated");
+    UserEntity user =
+        userRepository
+            .findByUsername(authentication.getName())
+            .orElseThrow(() -> new AccessDeniedException("User is not authenticated"));
+    return new CurrenUserDto(
+        user.getFirstName(), user.getLastName(), user.getRole(), user.getUsername());
   }
 }
