@@ -65,7 +65,7 @@ public class AuthService {
     return new LoginResponseDto(user.getUsername(), tokenResponseDto);
   }
 
-  public CurrenUserDto getCurrentUser() {
+  public CurrentUserDto getCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !authentication.isAuthenticated())
       throw new AccessDeniedException("User is not authenticated");
@@ -73,7 +73,7 @@ public class AuthService {
         userRepository
             .findByUsername(authentication.getName())
             .orElseThrow(() -> new AccessDeniedException("User is not authenticated"));
-    return new CurrenUserDto(
+    return new CurrentUserDto(
         user.getFirstName(), user.getLastName(), user.getRole(), user.getUsername());
   }
 }

@@ -38,7 +38,7 @@ public class AuthController {
   }
 
   @GetMapping("/me")
-  public ResponseEntity<CurrenUserDto> getCurrentUser() {
+  public ResponseEntity<CurrentUserDto> getCurrentUser() {
     return ResponseEntity.status(HttpStatus.OK).body(authService.getCurrentUser());
   }
 }
