@@ -25,17 +25,17 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(registerRequestDto));
   }
 
-  @PostMapping("/login")
-  public ResponseEntity<LoginResponseDto> login(
-      @Valid @RequestBody LoginRequestDto loginRequestDto) {
-    LoginResponseDto loginResponseDto = authService.login(loginRequestDto);
-    ResponseCookie cookie =
-        authUtil.createHttpOnlyResponseCookie(loginResponseDto.authData().token());
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(
+        @Valid @RequestBody LoginRequestDto loginRequestDto) {
+      LoginResponseDto loginResponseDto = authService.login(loginRequestDto);
+      ResponseCookie cookie =
+          authUtil.createHttpOnlyResponseCookie(loginResponseDto.authData().token());
 
-    return ResponseEntity.status(HttpStatus.OK)
-        .header(HttpHeaders.SET_COOKIE, cookie.toString())
-        .body(loginResponseDto);
-  }
+      return ResponseEntity.status(HttpStatus.OK)
+          .header(HttpHeaders.SET_COOKIE, cookie.toString())
+          .body(loginResponseDto);
+    }
 
   @GetMapping("/me")
   public ResponseEntity<CurrentUserDto> getCurrentUser() {
