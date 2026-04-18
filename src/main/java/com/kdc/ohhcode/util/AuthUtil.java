@@ -72,10 +72,12 @@ public class AuthUtil {
   public ResponseCookie createHttpOnlyResponseCookie(String token) {
     return ResponseCookie.from("token", token)
         .httpOnly(true)
-        .secure(false)
+        //        .secure(false)
+        .secure(true) // Set to true in production when using HTTPS
         .path("/")
         .maxAge(JWT_EXPIRY_MS / 1000)
-        .sameSite("Lax")
+        //        .sameSite("Lax")
+        .sameSite("none") // Consider using "Strict" for better security, adjust as needed
         .build();
   }
 
